@@ -53,6 +53,7 @@
 		pagerCustom: null,
 
 		// CONTROLS
+                thumbnailControls: true,
 		controls: true,
 		nextText: 'Next',
 		prevText: 'Prev',
@@ -299,7 +300,9 @@
 				el.append(sliceAppend).prepend(slicePrepend);
 			}
 			// remove the loading DOM element
-			slider.loader.remove();
+			slider.loader.fadeOut('slow', function(){
+                            slider.loader.remove();
+                        }) 
 			// set the left / top position of "el"
 			setSlidePosition();
 			// if "vertical" mode, always use adaptiveHeight to prevent odd behavior
@@ -328,6 +331,8 @@
 			if (slider.settings.keyboardEnabled && !slider.settings.ticker) { 
 				$(document).keydown(keyPress);
 			}
+                        //Update thumbnails control
+                        updateThumbnailControl();
 		};
 
 		/**
@@ -651,8 +656,14 @@
 		 * Appends prev / next controls to the controls element
 		 */
 		var appendControls = function(){
-			slider.controls.next = $('<a class="bx-next" href="">' + slider.settings.nextText + '</a>');
-			slider.controls.prev = $('<a class="bx-prev" href="">' + slider.settings.prevText + '</a>');
+                        /* Thumbnail controls */
+                        if(slider.settings.thumbnailControls){
+                            slider.controls.next = $('<div class="bx-thumbnail-next" href="">' + slider.settings.nextText + '</div>');
+                            slider.controls.prev = $('<div class="bx-thumbnail-prev" href="">' + slider.settings.prevText + '</div>');                            
+                        }else{
+                            slider.controls.next = $('<a class="bx-next" href="">' + slider.settings.nextText + '</a>');
+                            slider.controls.prev = $('<a class="bx-prev" href="">' + slider.settings.prevText + '</a>'); 
+                        }
 			// bind click actions to the controls
 			slider.controls.next.bind('click touchend', clickNextBind);
 			slider.controls.prev.bind('click touchend', clickPrevBind);
@@ -674,6 +685,16 @@
 				slider.controls.el.addClass('bx-has-controls-direction').append(slider.controls.directionEl);
 			}
 		};
+                
+                /* Update thumbnail of thumbnail controls */
+                var updateThumbnailControl = function(){
+                        if(slider.settings.thumbnailControls){
+                            var prev = (slider.active.index === 0) ? getPagerQty() - 1 : slider.active.index - 1;
+                            var next = (slider.active.last) ? 0: slider.active.index + 1;
+                            slider.controls.next.css('background', 'url(\'' + slider.children.eq(next).data('thumbnail') + '\') no-repeat');
+                            slider.controls.prev.css('background', 'url(\'' + slider.children.eq(prev).data('thumbnail') + '\') no-repeat');
+                        }
+                }
 
 		/**
 		 * Appends start / stop auto controls to the controls element
@@ -1268,7 +1289,7 @@
 		 * @param direction (string)
 		 *  - INTERNAL USE ONLY - the direction of travel ("prev" / "next")
 		 */
-		el.goToSlide = function(slideIndex, direction){
+		el.goToSlide = function(slideIndex, direction){                        
 			// if plugin is currently in motion, ignore request
 			if(slider.working || slider.active.index === slideIndex){ return; }
 			// declare that plugin is in motion
@@ -1384,6 +1405,8 @@
 					setPositionProperty(value, 'slide', slider.settings.speed);
 				}
 			}
+                        /* Update thumbnail */
+                        updateThumbnailControl();
 		};
 
 		/**
